@@ -36,7 +36,9 @@ jobs:
         env:
           SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
         run: |
+          mkdir -p ~/.ssh
           echo "$SSH_PUBLIC_KEY" > ~/.ssh/id_rsa.pub
+          chmod 644 ~/.ssh/id_rsa.pub
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
