@@ -1,0 +1,22 @@
+name: 'Terraform Environment Setup'
+description: 'Set additional Terraform environment variables and export them to GITHUB_ENV'
+
+inputs:
+  env_vars:
+    description: 'Environment variables to set, provided as a multiline string'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 'Set additional Terraform environment variables from input'
+      shell: bash
+      run: |
+        echo "${{ inputs.env_vars }}" | while IFS= read -r line; do
+          if [[ -n "$line" ]]; then
+            key=$(echo "$line" | cut -d '=' -f 1)
+            value=$(echo "$line" | cut -d '=' -f 2-)
+            echo "::add-mask::$value"
+            echo "$key=$value" >> $GITHUB_ENV
+          fi
+        done

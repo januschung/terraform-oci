@@ -35,14 +35,13 @@ This project provisions an Oracle Cloud Infrastructure (OCI) compute instance us
 ├── job-winner.tf
 ├── main.tf
 ├── modules
-│   └── docker-server
+│   └── web-server
 │       ├── cloud-init.sh.tftpl # optional configure if not using ansible
 │       ├── main.tf
 │       ├── output.tf
 │       ├── README.md
 │       └── variables.tf
-├── README.md
-└── variables.tf
+└── README.md
 ```
 ## Prerequisites
 

@@ -1,0 +1,6 @@
+- name: Setup Docker Node
+  hosts: all
+  become: true
+  roles:
+    - common
+    - docker

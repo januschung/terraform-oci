@@ -1,0 +1,67 @@
+name: Terraform Workflow
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup OCI CLI
+        run: |
+          sudo yum install -y oracle-release-el7 oracle-oci-cli
+
+      - name: Configure OCI CLI
+        env:
+          OCI_TENANCY: ${{ secrets.OCI_TENANCY_OCID }}
+          OCI_USER: ${{ secrets.OCI_USER_OCID }}
+          OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
+          OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
+          OCI_REGION: ${{ secrets.OCI_REGION }}
+        run: |
+          mkdir -p ~/.oci
+          echo "$OCI_PRIVATE_KEY" > ~/.oci/oci_api_key.pem
+          chmod 600 ~/.oci/oci_api_key.pem
+          cat > ~/.oci/config <<EOF
+          [DEFAULT]
+          user=${OCI_USER}
+          fingerprint=${OCI_FINGERPRINT}
+          key_file=~/.oci/oci_api_key.pem
+          tenancy=${OCI_TENANCY}
+          region=${OCI_REGION}
+          EOF
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
+
+      - name: Terraform Init
+        run: terraform init
+      
+      - name: Terraform Format Check
+        run: |
+          terraform fmt -check -recursive || {
+            echo "The following files need formatting:"
+            terraform fmt -recursive -list
+            exit 1
+          }
+      
+      - name: Add Terraform Environment Variables
+        uses: ./.github/actions/terraform-env-setup
+        with:
+          env_vars: |
+            TF_VAR_compartment_ocid=${{ secrets.OCI_TENANCY_OCID }}
+
+      - name: Terraform Plan
+        if: github.event_name == 'pull_request'
+        run: terraform plan -lock=false
+
+      - name: Terraform Apply
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve

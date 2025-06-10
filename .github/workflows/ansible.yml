@@ -1,0 +1,49 @@
+name: Ansible Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      host:
+        description: "Target host IP"
+        required: true
+        type: string
+      user:
+        description: "Remote SSH username"
+        required: true
+        type: string
+        default: opc
+      playbook:
+        description: "Playbook to run"
+        required: true
+        type: choice
+        options:
+          - setup-docker.yml
+          - setup-k3s.yml
+
+jobs:
+  run-ansible:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Ansible
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.ANSIBLE_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ inputs.host }} >> ~/.ssh/known_hosts
+
+      - name: Run Ansible Playbook
+        run: |
+          cd ansible
+          ansible-playbook playbooks/${{ inputs.playbook }} \
+            -i "${{ inputs.host }}," \
+            -u "${{ inputs.user }}" \
+            --private-key ~/.ssh/id_rsa \
+            --become

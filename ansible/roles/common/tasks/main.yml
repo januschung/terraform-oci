@@ -1,0 +1,31 @@
+- name: Update all packages
+  dnf:
+    name: "*"
+    state: latest
+
+- name: Install EPEL and required tools
+  dnf:
+    name:
+      - epel-release
+      - firewalld
+    state: present
+
+- name: Enable and start firewalld
+  systemd:
+    name: firewalld
+    enabled: yes
+    state: started
+
+- name: Open HTTP port
+  firewalld:
+    port: 80/tcp
+    permanent: true
+    state: enabled
+    immediate: true
+
+- name: Open HTTPS port
+  firewalld:
+    port: 443/tcp
+    permanent: true
+    state: enabled
+    immediate: true

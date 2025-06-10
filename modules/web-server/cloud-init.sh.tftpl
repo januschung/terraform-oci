@@ -1,0 +1,34 @@
+#!/bin/bash
+# This script is not called directly by Terraform as a user_data script.
+# Instead, its function is replaced by ansible playbooks.
+
+dnf update -y
+
+# Remove podman (if installed)
+dnf remove -y podman
+
+# Install Docker dependencies
+dnf install -y dnf-plugins-core
+
+# Add Docker CE repo
+dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+# Install Docker
+dnf install -y docker-ce docker-ce-cli containerd.io
+
+# Enable and start Docker
+systemctl enable --now docker
+
+# Add opc user to docker group
+usermod -aG docker opc
+
+# Open ports 80 and 443 in firewalld
+firewall-cmd --permanent --add-port=80/tcp
+firewall-cmd --permanent --add-port=443/tcp
+firewall-cmd --reload
+
+# Install Certbot
+dnf install -y epel-release
+dnf config-manager --set-enabled ol9_codeready_builder
+dnf install -y python3 python3-pip
+pip3 install certbot
