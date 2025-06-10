@@ -21,13 +21,13 @@ jobs:
           OCI_REGION: ${{ secrets.OCI_REGION }}
         run: |
           mkdir -p ~/.oci
-          echo "$OCI_PRIVATE_KEY" > ~/.oci/oci_api_key.pem
-          chmod 600 ~/.oci/oci_api_key.pem
+          echo "$OCI_PRIVATE_KEY" > ~/.oci/id_rsa.pub
+          chmod 600 ~/.oci/id_rsa.pub
           cat > ~/.oci/config <<EOF
           [DEFAULT]
           user=${OCI_USER}
           fingerprint=${OCI_FINGERPRINT}
-          key_file=~/.oci/oci_api_key.pem
+          key_file=~/.oci/id_rsa.pub
           tenancy=${OCI_TENANCY}
           region=${OCI_REGION}
           EOF
