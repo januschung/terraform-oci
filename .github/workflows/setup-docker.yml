@@ -1,0 +1,25 @@
+name: Ansible Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      host:
+        description: "Target host IP"
+        required: true
+        type: string
+      user:
+        description: "SSH user"
+        required: true
+        type: string
+        default: opc
+
+jobs:
+  run-ansible:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Ansible Playbook to setup Docker
+        uses: ./.github/actions/ansible-runner
+        with:
+          host: ${{ inputs.host }}
+          user: ${{ inputs.user }}
+          playbook: setup-docker.yml

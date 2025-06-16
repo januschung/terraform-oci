@@ -1,0 +1,33 @@
+name: Setup Traefik
+
+on:
+  workflow_dispatch:
+    inputs:
+      host:
+        description: "Target host IP"
+        type: string
+        required: true
+      user:
+        description: "SSH user"
+        type: string
+        required: true
+        default: opc
+      traefik_host_domain:
+        description: "Traefik host domain"
+        type: string
+        required: true
+        default: "jobwinner.duckdns.org"
+
+jobs:
+  run-ansible:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Ansible Playbook to setup Traefik
+        uses: ./.github/actions/ansible-runner
+        with:
+          host: ${{ inputs.host }}
+          user: ${{ inputs.user }}
+          playbook: setup-traefik.yml
+          extra_vars: |
+            acme_email=${{ secrets.DUCKDNS_EMAIL }}
+            traefik_host_domain=${{ inputs.host }}

@@ -1,0 +1,33 @@
+- name: Ensure output directory exists
+  ansible.builtin.file:
+    path: "/opt/jobwinner"
+    state: directory
+    owner: opc
+    group: opc
+    mode: '0755'
+
+- name: Create docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: /opt/jobwinner/docker-compose.yml
+    owner: opc
+    group: opc
+    mode: '0644'
+
+- name: Update DuckDNS IP
+  ansible.builtin.uri:
+    url: "https://www.duckdns.org/update?domains={{ duckdns_domain }}&token={{ duckdns_token }}&ip="
+    method: GET
+    return_content: true
+  register: duckdns_response
+
+- name: Show DuckDNS update response
+  ansible.builtin.debug:
+    var: duckdns_response.content
+
+- name: Start Job Winner using Docker Compose
+  ansible.builtin.shell: docker compose up -d
+  args:
+    chdir: /opt/jobwinner
+  become: true
+  become_user: opc

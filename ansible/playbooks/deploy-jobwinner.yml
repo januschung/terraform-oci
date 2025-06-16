@@ -1,0 +1,9 @@
+- name: Deploy Job Winner with DuckDNS
+  hosts: all
+  become: true
+  roles:
+    - role: deploy-jobwinner
+      vars:
+        traefik_host_domain: "{{ traefik_host_domain }}"
+        duckdns_domain: "{{ duckdns_domain }}"
+        duckdns_token: "{{ duckdns_token }}"

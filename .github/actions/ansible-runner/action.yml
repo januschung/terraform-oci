@@ -1,0 +1,46 @@
+name: "Ansible Runner"
+description: "Reusable step to run Ansible playbooks"
+inputs:
+  host:
+    required: true
+    description: "Target host ip"
+  user:
+    required: true
+    description: "SSH user"
+  playbook:
+    required: true
+    description: "Playbook to run (relative to ansible/playbooks/)"
+  extra_vars:
+    required: false
+    description: "Extra vars string (quoted)"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Ansible
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ansible
+
+    - name: Setup SSH
+      shell: bash
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.ANSIBLE_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ inputs.host }} >> ~/.ssh/known_hosts
+
+    - name: Run Ansible Playbook
+      shell: bash
+      run: |
+        cd ansible
+        ansible-playbook playbooks/${{ inputs.playbook }} \
+          -i "${{ inputs.host }}," \
+          -u "${{ inputs.user }}" \
+          --private-key ~/.ssh/id_rsa \
+          --become \
+          ${{ inputs.extra_vars && format('--extra-vars "{0}"', inputs.extra_vars) }}
