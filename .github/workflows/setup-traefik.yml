@@ -30,4 +30,4 @@ jobs:
           playbook: setup-traefik.yml
           extra_vars: |
             acme_email=${{ secrets.DUCKDNS_EMAIL }}
-            traefik_host_domain=${{ inputs.host }}
+            traefik_host_domain=${{ inputs.traefik_host_domain }}
