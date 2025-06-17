@@ -10,6 +10,9 @@ inputs:
   playbook:
     required: true
     description: "Playbook to run (relative to ansible/playbooks/)"
+  ssh_key:
+    required: true
+    description: "SSH private key"
   extra_vars:
     required: false
     description: "Extra vars string (quoted)"
@@ -20,14 +23,13 @@ runs:
     - name: Install Ansible
       shell: bash
       run: |
-        sudo apt-get update
-        sudo apt-get install -y ansible
+        sudo apt-get update && sudo apt-get install -y ansible
 
     - name: Setup SSH
       shell: bash
       run: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.ANSIBLE_SSH_KEY }}" > ~/.ssh/id_rsa
+        echo "${{ inputs.ssh_key }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H ${{ inputs.host }} >> ~/.ssh/known_hosts
 
@@ -40,4 +42,14 @@ runs:
           -u "${{ inputs.user }}" \
           --private-key ~/.ssh/id_rsa \
           --become \
-          ${{ inputs.extra_vars && format('--extra-vars "{0}"', inputs.extra_vars) }}
+          if [ -n "${{ inputs.extra_vars }}" ]; then
+            EXTRA_VARS="--extra-vars '${{ inputs.extra_vars }}'"
+          else
+            EXTRA_VARS=""
+          fi
+          ansible-playbook playbooks/${{ inputs.playbook }} \
+            -i "${{ inputs.host }}," \
+            -u "${{ inputs.user }}" \
+            --private-key ~/.ssh/id_rsa \
+            --become \
+            $EXTRA_VARS
