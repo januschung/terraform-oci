@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Run Ansible Playbook to setup Traefik
+      - name: Run Ansible Playbook to deploy Job Winner
         uses: ./.github/actions/ansible-runner
         with:
           host: ${{ inputs.host }}
