@@ -62,7 +62,7 @@ resource "oci_core_subnet" "subnet" {
   security_list_ids = [oci_core_security_list.http_https.id,
   oci_core_virtual_network.vcn.default_security_list_id, ]
   route_table_id = oci_core_route_table.public_rt.id
-  dns_label      = lower("${var.name_prefix}subnet")
+  dns_label      = lower("${var.dns_label}")
 }
 
 data "oci_core_images" "oracle_linux" {
