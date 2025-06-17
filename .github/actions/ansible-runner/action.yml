@@ -38,7 +38,7 @@ runs:
       run: |
         cd ansible
         if [ -n "${{ inputs.extra_vars }}" ]; then
-          EXTRA_VARS="--extra-vars '${{ inputs.extra_vars }}'"
+          EXTRA_VARS="--extra-vars \"${{ inputs.extra_vars }}\""
         else
           EXTRA_VARS=""
         fi
