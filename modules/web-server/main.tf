@@ -2,7 +2,7 @@ resource "oci_core_virtual_network" "vcn" {
   compartment_id = var.compartment_ocid
   cidr_block     = "10.0.0.0/16"
   display_name   = "${var.name_prefix}-vcn"
-  dns_label      = lower("${var.name_prefix}vcn")
+  dns_label      = lower("${var.name_prefix}")
   is_ipv6enabled = false
 }
 
