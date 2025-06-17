@@ -26,5 +26,4 @@ jobs:
           user: ${{ inputs.user }}
           ssh_key: ${{ secrets.SSH_PRIVATE_KEY }}
           playbook: deploy-jobwinner.yml
-          extra_vars: |
-            duckdns_domain=jobwinner traefik_host_domain=jobwinner.duckdns.org acme_email=${{ secrets.DUCKDNS_EMAIL }} duckdns_token=${{ secrets.DUCKDNS_TOKEN }}
+          extra_vars: duckdns_domain=jobwinner traefik_host_domain=jobwinner.duckdns.org acme_email=${{ secrets.DUCKDNS_EMAIL }} duckdns_token=${{ secrets.DUCKDNS_TOKEN }}
