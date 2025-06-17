@@ -12,6 +12,7 @@ module "job_winner" {
   ocpus            = 1
   memory_gb        = 6
   name_prefix      = "job-winner"
+  dns_label        = "jobwinner"
 }
 
 output "instance_ip" {
