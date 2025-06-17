@@ -31,5 +31,4 @@ jobs:
           user: ${{ inputs.user }}
           ssh_key: ${{ secrets.SSH_PRIVATE_KEY }}
           playbook: setup-traefik.yml
-          extra_vars: |
-            acme_email=${{ secrets.DUCKDNS_EMAIL }} traefik_host_domain=${{ inputs.traefik_host_domain }}
+          extra_vars: acme_email=${{ secrets.DUCKDNS_EMAIL }} traefik_host_domain=${{ inputs.traefik_host_domain }}
