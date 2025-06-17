@@ -1,4 +1,4 @@
-name: Setup Traefik
+name: Set up Traefik
 
 on:
   workflow_dispatch:
@@ -22,6 +22,8 @@ jobs:
   run-ansible:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
       - name: Run Ansible Playbook to setup Traefik
         uses: ./.github/actions/ansible-runner
         with:
