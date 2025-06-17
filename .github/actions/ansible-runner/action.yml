@@ -37,14 +37,21 @@ runs:
       shell: bash
       run: |
         cd ansible
-        if [ -n "${{ inputs.extra_vars }}" ]; then
-          EXTRA_VARS="--extra-vars \"${{ inputs.extra_vars }}\""
+        EXTRA_VARS_INPUT="${{ inputs.extra_vars }}"
+
+        if [ -n "$EXTRA_VARS_INPUT" ]; then
+          echo "Extra vars provided: $EXTRA_VARS_INPUT"
+          ansible-playbook playbooks/${{ inputs.playbook }} \
+            -i "${{ inputs.host }}," \
+            -u "${{ inputs.user }}" \
+            --private-key ~/.ssh/id_rsa \
+            --become \
+            --extra-vars "$EXTRA_VARS_INPUT"
         else
-          EXTRA_VARS=""
+          echo "No extra vars provided"
+          ansible-playbook playbooks/${{ inputs.playbook }} \
+            -i "${{ inputs.host }}," \
+            -u "${{ inputs.user }}" \
+            --private-key ~/.ssh/id_rsa \
+            --become
         fi
-        ansible-playbook playbooks/${{ inputs.playbook }} \
-          -i "${{ inputs.host }}," \
-          -u "${{ inputs.user }}" \
-          --private-key ~/.ssh/id_rsa \
-          --become \
-          $EXTRA_VARS
