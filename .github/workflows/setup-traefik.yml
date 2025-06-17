@@ -29,7 +29,7 @@ jobs:
         with:
           host: ${{ inputs.host }}
           user: ${{ inputs.user }}
-          ssh_key: ${{ secrets.OCI_PRIVATE_KEY }}
+          ssh_key: ${{ secrets.SSH_PRIVATE_KEY }}
           playbook: setup-traefik.yml
           extra_vars: |
             acme_email=${{ secrets.DUCKDNS_EMAIL }}
