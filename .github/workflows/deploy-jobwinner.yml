@@ -1,0 +1,30 @@
+name: Deploy Job Winner
+
+on:
+  workflow_dispatch:
+    inputs:
+      host:
+        description: "Target host IP"
+        type: string
+        required: true
+      user:
+        description: "SSH user"
+        type: string
+        required: true
+        default: opc
+
+jobs:
+  run-ansible:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Ansible Playbook to setup Traefik
+        uses: ./.github/actions/ansible-runner
+        with:
+          host: ${{ inputs.host }}
+          user: ${{ inputs.user }}
+          playbook: deploy-jobwinner.yml
+          extra_vars: |
+            duckdns_domain=jobwinner
+            traefik_host_domain=jobwinner.duckdns.org
+            acme_email=${{ secrets.DUCKDNS_EMAIL }}
+            duckdns_token=${{ secrets.DUCKDNS_TOKEN }}

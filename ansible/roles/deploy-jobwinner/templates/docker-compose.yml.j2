@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  frontend:
+    image: ghcr.io/januschung/job-winner-ui:latest
+    container_name: frontend
+    environment:
+      - BACKEND_URL=/graphql
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`{{ traefik_host_domain }}`) && PathPrefix(`/`) && !PathPrefix(`/graphql`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+    networks:
+      - app_network
+
+  backend:
+    image: ghcr.io/januschung/job-winner:latest
+    container_name: backend
+    environment:
+      - SPRING_PROFILES_ACTIVE=demo
+      - UI_PATH=https://{{ traefik_host_domain }}
+      - SERVER_PORT=8080
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`{{ traefik_host_domain }}`) && PathPrefix(`/graphql`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.backend.loadbalancer.server.port=8080"
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    external: true

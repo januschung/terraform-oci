@@ -1,0 +1,44 @@
+- name: Ensure output directory exists
+  ansible.builtin.file:
+    path: "/opt/traefik"
+    state: directory
+    owner: opc
+    group: opc
+    mode: '0755'
+
+- name: Create acme.json
+  template:
+    src: acme.json.j2
+    dest: /opt/traefik/acme.json
+    owner: opc
+    group: opc
+    mode: '0600'
+
+- name: Create traefik.yml
+  template:
+    src: traefik.yml.j2
+    dest: /opt/traefik/traefik.yml
+    owner: opc
+    group: opc
+    mode: '0644'
+
+- name: Ensure Docker network exists
+  ansible.builtin.shell: |
+    docker network inspect app_network >/dev/null 2>&1 || docker network create app_network
+  become: true
+  become_user: opc
+
+- name: Create docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: /opt/traefik/docker-compose.yml
+    owner: opc
+    group: opc
+    mode: '0644'
+
+- name: Start Traefik using Docker Compose
+  ansible.builtin.shell: docker compose up -d
+  args:
+    chdir: /opt/traefik
+  become: true
+  become_user: opc
