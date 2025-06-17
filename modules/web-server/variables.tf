@@ -42,5 +42,10 @@ variable "ocid_image_id" {
   description = "OCID of the image to use for the compute instance"
   type        = string
   default     = "ocid1.image.oc1.phx.aaaaaaaaeqdefxlbovrp5uafn6gp5kxmesjdmkk7e7lhqcfgfy67zckwynlq"
+}
 
+variable "dns_label" {
+  description = "DNS label for the subnet"
+  type        = string
+  default     = "myappdns"
 }
