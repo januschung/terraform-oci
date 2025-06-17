@@ -24,4 +24,5 @@ jobs:
         with:
           host: ${{ inputs.host }}
           user: ${{ inputs.user }}
+          ssh_key: ${{ secrets.ANSIBLE_SSH_KEY }}
           playbook: setup-docker.yml
