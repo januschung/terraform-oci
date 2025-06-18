@@ -1,8 +1,0 @@
-- name: Deploy Traefik with LetsEncrypt and DuckDNS
-  hosts: all
-  become: true
-  roles:
-    - role: traefik-proxy
-      vars:
-        acme_email: "{{ acme_email }}"
-        traefik_host_domain: "{{ traefik_host_domain }}"

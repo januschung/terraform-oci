@@ -1,0 +1,22 @@
+- name: Ensure output directory exists
+  ansible.builtin.file:
+    path: "{{ compose_app_path }}"
+    state: directory
+    owner: opc
+    group: opc
+    mode: '0755'
+
+- name: Copy docker-compose.yml
+  template:
+    src: "{{ compose_template }}"
+    dest: "{{ compose_app_path }}/docker-compose.yml"
+    owner: opc
+    group: opc
+    mode: '0644'
+
+- name: Start app using Docker Compose
+  ansible.builtin.shell: docker compose up -d
+  args:
+    chdir: "{{ compose_app_path }}"
+  become: true
+  become_user: opc
