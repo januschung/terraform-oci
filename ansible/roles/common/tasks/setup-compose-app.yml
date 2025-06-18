@@ -7,8 +7,9 @@
     mode: '0755'
 
 - name: Copy docker-compose.yml
-  template:
-    src: "{{ compose_template }}"
+  ansible.builtin.template:
+    compose_template_dir: "{{ role_path }}/../common/templates"
+    src: "{{ compose_template_dir }}/{{ compose_template }}"
     dest: "{{ compose_app_path }}/docker-compose.yml"
     owner: opc
     group: opc
