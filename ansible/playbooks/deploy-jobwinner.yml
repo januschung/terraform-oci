@@ -7,3 +7,4 @@
         traefik_host_domain: "{{ traefik_host_domain }}"
         duckdns_domain: "{{ duckdns_domain }}"
         duckdns_token: "{{ duckdns_token }}"
+        acme_email: "{{ acme_email }}"
