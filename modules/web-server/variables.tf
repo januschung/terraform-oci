@@ -49,3 +49,47 @@ variable "dns_label" {
   type        = string
   default     = "myappdns"
 }
+
+variable "ingress_security_rules" {
+  description = "List of ingress security rules for the security list"
+  type = list(object({
+    protocol = string
+    source   = string
+    tcp_options = optional(object({
+      min = number
+      max = number
+    }))
+    udp_options = optional(object({
+      min = number
+      max = number
+    }))
+    icmp_options = optional(object({
+      type = number
+      code = optional(number)
+    }))
+    description = optional(string)
+  }))
+  default = []
+}
+
+variable "egress_security_rules" {
+  description = "List of egress security rules for the security list"
+  type = list(object({
+    protocol    = string
+    destination = string
+    tcp_options = optional(object({
+      min = number
+      max = number
+    }))
+    udp_options = optional(object({
+      min = number
+      max = number
+    }))
+    icmp_options = optional(object({
+      type = number
+      code = optional(number)
+    }))
+    description = optional(string)
+  }))
+  default = []
+}
