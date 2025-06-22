@@ -29,28 +29,64 @@ resource "oci_core_security_list" "http_https" {
   vcn_id         = oci_core_virtual_network.vcn.id
   display_name   = "${var.name_prefix}-sec-list"
 
-  ingress_security_rules {
-    protocol = "6"
-    source   = "0.0.0.0/0"
-    tcp_options {
-      min = 80
-      max = 80
+  dynamic "ingress_security_rules" {
+    for_each = var.ingress_security_rules
+    content {
+      protocol    = ingress_security_rules.value.protocol
+      source      = ingress_security_rules.value.source
+      description = lookup(ingress_security_rules.value, "description", null)
+      dynamic "tcp_options" {
+        for_each = lookup(ingress_security_rules.value, "tcp_options", null) != null ? [1] : []
+        content {
+          min = ingress_security_rules.value.tcp_options.min
+          max = ingress_security_rules.value.tcp_options.max
+        }
+      }
+      dynamic "udp_options" {
+        for_each = lookup(ingress_security_rules.value, "udp_options", null) != null ? [1] : []
+        content {
+          min = ingress_security_rules.value.udp_options.min
+          max = ingress_security_rules.value.udp_options.max
+        }
+      }
+      dynamic "icmp_options" {
+        for_each = lookup(ingress_security_rules.value, "icmp_options", null) != null ? [1] : []
+        content {
+          type = ingress_security_rules.value.icmp_options.type
+          code = lookup(ingress_security_rules.value.icmp_options, "code", null)
+        }
+      }
     }
-
   }
 
-  ingress_security_rules {
-    protocol = "6"
-    source   = "0.0.0.0/0"
-    tcp_options {
-      min = 443
-      max = 443
+  dynamic "egress_security_rules" {
+    for_each = var.egress_security_rules
+    content {
+      protocol    = egress_security_rules.value.protocol
+      destination = egress_security_rules.value.destination
+      description = lookup(egress_security_rules.value, "description", null)
+      dynamic "tcp_options" {
+        for_each = lookup(egress_security_rules.value, "tcp_options", null) != null ? [1] : []
+        content {
+          min = egress_security_rules.value.tcp_options.min
+          max = egress_security_rules.value.tcp_options.max
+        }
+      }
+      dynamic "udp_options" {
+        for_each = lookup(egress_security_rules.value, "udp_options", null) != null ? [1] : []
+        content {
+          min = egress_security_rules.value.udp_options.min
+          max = egress_security_rules.value.udp_options.max
+        }
+      }
+      dynamic "icmp_options" {
+        for_each = lookup(egress_security_rules.value, "icmp_options", null) != null ? [1] : []
+        content {
+          type = egress_security_rules.value.icmp_options.type
+          code = lookup(egress_security_rules.value.icmp_options, "code", null)
+        }
+      }
     }
-  }
-
-  egress_security_rules {
-    protocol    = "all"
-    destination = "0.0.0.0/0"
   }
 }
 

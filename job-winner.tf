@@ -13,6 +13,33 @@ module "job_winner" {
   memory_gb        = 6
   name_prefix      = "job-winner"
   dns_label        = "jobwinner"
+  ingress_security_rules = [
+    {
+      protocol = "6"
+      source   = "0.0.0.0/0"
+      tcp_options = {
+        min = 80
+        max = 80
+      }
+      description = "Allow HTTP"
+    },
+    {
+      protocol = "6"
+      source   = "0.0.0.0/0"
+      tcp_options = {
+        min = 443
+        max = 443
+      }
+      description = "Allow HTTPS"
+    }
+  ]
+  egress_security_rules = [
+    {
+      protocol    = "all"
+      destination = "0.0.0.0/0"
+      description = "Allow all egress"
+    }
+  ]
 }
 
 output "instance_ip" {
