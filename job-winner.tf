@@ -1,9 +1,3 @@
-variable "compartment_ocid" {
-  description = "The OCID of the compartment where the instance will be created"
-  type        = string
-  sensitive   = true
-}
-
 module "job_winner" {
   source           = "./modules/web-server"
   compartment_ocid = var.compartment_ocid
@@ -42,12 +36,7 @@ module "job_winner" {
   ]
 }
 
-output "instance_ip" {
+output "jobwinnner_instance_ip" {
   value       = module.job_winner.instance_public_ip
   description = "Public IP address of the Docker instance"
-}
-
-output "latest_image_id" {
-  value       = module.job_winner.source_image_id
-  description = "ID of the latest source image as a reference for future updates"
 }
