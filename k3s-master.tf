@@ -69,7 +69,7 @@ module "k3s_master" {
   ]
 }
 
-output "instance_ip" {
+output "k3s_master_instance_ip" {
   value       = module.k3s_master.instance_public_ip
   description = "Public IP address of the K3s master instance"
 }
