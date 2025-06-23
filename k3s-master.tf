@@ -4,6 +4,12 @@ variable "compartment_ocid" {
   sensitive   = true
 }
 
+variable "internal_cidr" {
+  description = "Allowed internal CIDR range for Kubernetes node-to-node communication"
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
 module "k3s_master" {
   source           = "./modules/web-server"
   compartment_ocid = var.compartment_ocid
@@ -43,7 +49,7 @@ module "k3s_master" {
     },
     {
       protocol = "6"
-      source   = "0.0.0.0/0"
+      source   = var.internal_cidr
       tcp_options = {
         min = 10250
         max = 10250
@@ -52,7 +58,7 @@ module "k3s_master" {
     },
     {
       protocol = "17"
-      source   = "0.0.0.0/0"
+      source   = var.internal_cidr
       udp_options = {
         min = 8472
         max = 8472
