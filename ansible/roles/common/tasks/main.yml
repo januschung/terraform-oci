@@ -29,3 +29,28 @@
     permanent: true
     state: enabled
     immediate: true
+
+# ────── K3s Support Ports (only when k3s_enabled is true) ──────
+- name: Open K3s API port (6443)
+  firewalld:
+    port: 6443/tcp
+    permanent: true
+    state: enabled
+    immediate: true
+  when: k3s_enabled | default(false)
+
+- name: Open Kubelet API port (10250)
+  firewalld:
+    port: 10250/tcp
+    permanent: true
+    state: enabled
+    immediate: true
+  when: k3s_enabled | default(false)
+
+- name: Open Flannel VXLAN port (8472/udp)
+  firewalld:
+    port: 8472/udp
+    permanent: true
+    state: enabled
+    immediate: true
+  when: k3s_enabled | default(false)

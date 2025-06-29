@@ -1,0 +1,8 @@
+- name: Setup K3s master
+  hosts: all
+  become: true
+  vars:
+    k3s_enabled: true
+  roles:
+    - common
+    - k3s

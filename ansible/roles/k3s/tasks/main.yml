@@ -1,0 +1,95 @@
+- name: Disable swap (required by Kubernetes)
+  command: swapoff -a
+  when: ansible_swaptotal_mb > 0
+
+- name: Remove swap entry from /etc/fstab
+  replace:
+    path: /etc/fstab
+    regexp: '(^.*swap.*$)'
+    replace: '# \1'
+
+- name: Ensure br_netfilter module is loaded
+  modprobe:
+    name: br_netfilter
+    state: present
+
+- name: Ensure br_netfilter is loaded on boot
+  copy:
+    dest: /etc/modules-load.d/k8s.conf
+    content: "br_netfilter\n"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Configure sysctl for Kubernetes networking
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    sysctl_set: yes
+    reload: yes
+  loop:
+    - { name: net.bridge.bridge-nf-call-iptables, value: 1 }
+    - { name: net.bridge.bridge-nf-call-ip6tables, value: 1 }
+    - { name: net.ipv4.ip_forward, value: 1 }
+
+- name: Install K3s master
+  shell: |
+    curl -sfL https://get.k3s.io | sh -s - server --cluster-init
+  args:
+    creates: /usr/local/bin/k3s
+
+- name: Wait for K3s service to be active
+  systemd:
+    name: k3s
+    state: started
+    enabled: yes
+
+- name: Wait for node to be Ready
+  shell: |
+    export PATH=/usr/local/bin:$PATH
+    kubectl get nodes --no-headers | grep ' Ready '
+  register: node_ready_check
+  retries: 10
+  delay: 15
+  until: node_ready_check.rc == 0
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Ensure chrony time sync service is running
+  package:
+    name: chrony
+    state: present
+
+- name: Enable and start chronyd
+  systemd:
+    name: chronyd
+    state: started
+    enabled: yes
+
+- name: Create .kube directory for opc user
+  file:
+    path: /home/opc/.kube
+    state: directory
+    owner: opc
+    group: opc
+    mode: '0755'
+
+- name: Copy kubeconfig to opc user home
+  copy:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: /home/opc/.kube/config
+    owner: opc
+    group: opc
+    mode: '0644'
+    remote_src: yes
+
+- name: Ensure KUBECONFIG is exported in .bashrc
+  lineinfile:
+    path: /home/opc/.bashrc
+    line: 'export KUBECONFIG=$HOME/.kube/config'
+    state: present
+    create: yes
+    owner: opc
+    group: opc
+    mode: '0644'
+
