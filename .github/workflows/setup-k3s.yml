@@ -1,0 +1,28 @@
+name: Set up K3s
+
+on:
+  workflow_dispatch:
+    inputs:
+      host:
+        description: "Target host IP"
+        required: true
+        type: string
+      user:
+        description: "SSH user"
+        required: true
+        type: string
+        default: opc
+
+jobs:
+  run-ansible:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Run Ansible Playbook to set up K3s
+        uses: ./.github/actions/ansible-runner
+        with:
+          host: ${{ inputs.host }}
+          user: ${{ inputs.user }}
+          ssh_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          playbook: setup-k3s.yml
