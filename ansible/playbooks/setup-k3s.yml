@@ -2,7 +2,7 @@
   hosts: all
   become: true
   vars:
-    k3s_enabled: tru
+    k3s_enabled: true
     duckdns_domain: "{{ duckdns_domain }}"
     duckdns_token: "{{ duckdns_token }}"
     acme_email: "{{ acme_email }}"
