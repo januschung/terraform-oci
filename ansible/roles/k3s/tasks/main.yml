@@ -135,7 +135,7 @@
 - name: Add Traefik Helm repository
   kubernetes.core.helm_repository:
     name: traefik
-    repo_url: https://traefik.github.io/chart
+    repo_url: https://traefik.github.io/charts
   
 - name: Install Traefik using Helm
   kubernetes.core.helm:
