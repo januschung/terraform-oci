@@ -154,7 +154,13 @@
       dnsPolicy: ClusterFirstWithHostNet
 
       service:
-        type: ClusterIP
+        type: LoadBalancer
+
+      securityContext:
+        capabilities:
+          add:
+            - NET_BIND_SERVICE
+        runAsUser: 0
 
       ports:
         web:
@@ -176,12 +182,6 @@
       env:
         - name: DUCKDNS_TOKEN
           value: "{{ duckdns_token }}"
-
-      middlewares:
-        redirect-to-https:
-          redirectScheme:
-            scheme: https
-            permanent: true
 
       ingressRoute:
         dashboard:
