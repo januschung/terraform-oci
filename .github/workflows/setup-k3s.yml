@@ -26,3 +26,4 @@ jobs:
           user: ${{ inputs.user }}
           ssh_key: ${{ secrets.SSH_PRIVATE_KEY }}
           playbook: setup-k3s.yml
+          extra_vars: duckdns_domain=janusc acme_email=${{ secrets.DUCKDNS_EMAIL }} duckdns_token=${{ secrets.DUCKDNS_TOKEN }}
