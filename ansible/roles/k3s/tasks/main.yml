@@ -105,9 +105,9 @@
     executable: pip3
 
 - name: Install custom Traefik ACME config into manifests
-  copy:
+  ansible.builtin.template:
+    src: traefik-config.yaml.j2
     dest: /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
-    content: "{{ lookup('file', 'traefik-config.yaml.j2') | template }}"
     mode: '0644'
 
 - name: Setup DuckDNS IP updater cron job
