@@ -1,3 +1,4 @@
+# /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
 apiVersion: helm.cattle.io/v1
 kind: HelmChartConfig
 metadata:
@@ -5,23 +6,46 @@ metadata:
   namespace: kube-system
 spec:
   valuesContent: |-
-    hostNetwork: true
-    dnsPolicy: ClusterFirstWithHostNet
+    ####################################################################
+    #  Traefik static (CLI) flags
+    ####################################################################
     additionalArguments:
-      - "--certificatesresolvers.le.acme.email={{ acme_email }}"
+      # --- ACME / Let's Encrypt (HTTP‑01) -----------------------------
+      - "--certificatesresolvers.le.acme.email=admin@example.com"
       - "--certificatesresolvers.le.acme.storage=/data/acme.json"
       - "--certificatesresolvers.le.acme.httpchallenge=true"
       - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.websecure.http.tls=true"
-      - "--providers.kubernetescrd"
-
+      # --- Redirect HTTP → HTTPS -------------------------------------
+      - "--entryPoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entryPoints.web.http.redirections.entryPoint.scheme=https"
+      - "--log.level=ERROR"
+    ####################################################################
+    #  Ports & Service definition
+    ####################################################################
+    ports:
+      web:
+        port: 80
+      websecure:
+        port: 443
+        tls:
+          enabled: true
+    service:
+      type: LoadBalancer
+    ####################################################################
+    #  Persistence so acme.json survives pod restarts
+    ####################################################################
     persistence:
       enabled: true
+      accessMode: ReadWriteOnce
+      size: 128Mi
       path: /data
-      size: 1Gi
-      storageClass: local-path
-
-    volumes: []
-    volumeMounts: []
+    deployment:
+      initContainers:
+        - name: volume-permissions
+          image: busybox:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              touch /data/acme.json
+              chmod 600 /data/acme.json

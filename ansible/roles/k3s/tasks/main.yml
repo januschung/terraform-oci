@@ -34,8 +34,7 @@
 
 - name: Install K3s master
   shell: |
-    curl -sfL https://get.k3s.io | sh -s - server \
-      --disable servicelb
+    curl -sfL https://get.k3s.io | sh -s - server
   args:
     creates: /usr/local/bin/k3s
 
