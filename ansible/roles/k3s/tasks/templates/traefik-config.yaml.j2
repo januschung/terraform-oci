@@ -5,6 +5,8 @@ metadata:
   namespace: kube-system
 spec:
   valuesContent: |-
+    hostNetwork: true
+    dnsPolicy: ClusterFirstWithHostNet
     additionalArguments:
       - "--certificatesresolvers.le.acme.email={{ acme_email }}"
       - "--certificatesresolvers.le.acme.storage=/data/acme.json"
