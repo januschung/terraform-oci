@@ -35,9 +35,7 @@
 - name: Install K3s master
   shell: |
     curl -sfL https://get.k3s.io | sh -s - server \
-      --disable traefik \
       --disable servicelb \
-      --disable local-storage
   args:
     creates: /usr/local/bin/k3s
 
