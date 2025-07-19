@@ -34,9 +34,14 @@
 
 - name: Install K3s master
   shell: |
-    curl -sfL https://get.k3s.io | sh -s - server --cluster-init
+    curl -sfL https://get.k3s.io | sh -s - server \
+      --disable traefik \
+      --disable servicelb \
+      --disable local-storage \
+      --kube-apiserver-arg "feature-gates=ServiceLB=false"
   args:
     creates: /usr/local/bin/k3s
+
 
 - name: Wait for K3s service to be active
   systemd:
@@ -146,27 +151,45 @@
     kubeconfig: /etc/rancher/k3s/k3s.yaml
     wait: true
     values:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+
       service:
-        type: LoadBalancer
+        type: ClusterIP
+
       ports:
         web:
           port: 80
-          redirectTo: websecure
         websecure:
           port: 443
           tls:
             enabled: true
-      addtionalArguments:
-        - "--providers.kubernetescrd"
+
+      additionalArguments:
         - "--entrypoints.web.address=:80"
         - "--entrypoints.websecure.address=:443"
-        - "--certificatesresolvers.le.acme.email:{{ acme_email }}"
+        - "--certificatesresolvers.le.acme.email={{ acme_email }}"
         - "--certificatesresolvers.le.acme.storage=/data/acme.json"
         - "--certificatesresolvers.le.acme.tlschallenge=true"
         - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+        - "--providers.kubernetescrd"
+
       env:
         - name: DUCKDNS_TOKEN
           value: "{{ duckdns_token }}"
+
+      middlewares:
+        redirect-to-https:
+          redirectScheme:
+            scheme: https
+            permanent: true
+
+      ingressRoute:
+        dashboard:
+          enabled: true
+          annotations:
+            traefik.ingress.kubernetes.io/router.entrypoints: web
+            traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect-to-https@kubernetescrd
 
 - name: Update DuckDNS updater cron Job
   cron:
