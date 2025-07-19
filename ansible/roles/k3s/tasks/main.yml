@@ -103,6 +103,35 @@
     name: kubernetes
     executable: pip3
 
+- name: Check if helm is already installed
+  command: helm version --short
+  register: helm_check
+  failed_when: false
+  changed_when: false
+
+- name: Install helm binary manually if missing
+  when: helm_check.rc != 0
+  block:
+    - name: Download Helm binary (ARM64)
+      get_url:
+        url: https://get.helm.sh/helm-v3.18.3-linux-arm64.tar.gz
+        dest: /tmp/helm.tar.gz
+
+    - name: Extract helm binary
+      unarchive:
+        src: /tmp/helm.tar.gz
+        dest: /tmp
+        remote_src: yes
+
+    - name: Move helm binary to /usr/bin
+      command: mv /tmp/linux-arm64/helm /usr/bin/helm
+
+    - name: Ensure Helm is executable
+      file:
+        path: /usr/bin/helm
+        mode: '0755'
+        state: file
+
 - name: Add Traefik Helm repository
   kubernetes.core.helm_repository:
     name: traefik
