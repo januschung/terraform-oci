@@ -14,9 +14,12 @@ spec:
       - "--entrypoints.websecure.address=:443"
       - "--entrypoints.websecure.http.tls=true"
       - "--providers.kubernetescrd"
-    volumes:
-      - name: acme
-        emptyDir: {}
-    volumeMounts:
-      - mountPath: /data
-        name: acme
+
+    persistence:
+      enabled: true
+      path: /data
+      size: 1Gi
+      storageClass: local-path
+
+    volumes: []
+    volumeMounts: []
