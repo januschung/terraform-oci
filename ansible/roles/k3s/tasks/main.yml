@@ -143,6 +143,7 @@
     chart_ref: traefik/traefik
     release_namespace: kube-system
     create_namespace: false
+    kubeconfig: /etc/rancher/k3s/k3s.yaml
     wait: true
     values:
       service:
