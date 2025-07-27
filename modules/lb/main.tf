@@ -56,17 +56,17 @@ resource "oci_load_balancer_backend" "https_backend" {
 }
 
 resource "oci_load_balancer_listener" "http" {
-  name                        = "http"
-  load_balancer_id            = oci_load_balancer.this.id
-  default_backend_set_name    = oci_load_balancer_backend_set.http.name
-  port                        = 80
-  protocol                    = "TCP"
+  name                     = "http"
+  load_balancer_id         = oci_load_balancer.this.id
+  default_backend_set_name = oci_load_balancer_backend_set.http.name
+  port                     = 80
+  protocol                 = "TCP"
 }
 
 resource "oci_load_balancer_listener" "https" {
-  name                        = "https"
-  load_balancer_id            = oci_load_balancer.this.id
-  default_backend_set_name    = oci_load_balancer_backend_set.https.name
-  port                        = 443
-  protocol                    = "TCP"
+  name                     = "https"
+  load_balancer_id         = oci_load_balancer.this.id
+  default_backend_set_name = oci_load_balancer_backend_set.https.name
+  port                     = 443
+  protocol                 = "TCP"
 }
