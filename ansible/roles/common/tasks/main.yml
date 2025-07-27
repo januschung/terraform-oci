@@ -54,3 +54,13 @@
     state: enabled
     immediate: true
   when: k3s_enabled | default(false)
+
+- name: Open Traefik NodePorts (30080-30443) from LB subnet
+  firewalld:
+    port: 30080-30443/tcp
+    source: "{{ lb_subnet_cidr | default('10.0.1.0/24') }}"
+    permanent: true
+    state: enabled
+    immediate: true
+  when: k3s_enabled | default(false)
+

@@ -115,6 +115,6 @@
     user: root
     job: >
       curl -fsS
-      "https://www.duckdns.org/update?domains={{ duckdns_domain }}&token={{ duckdns_token }}&ip="
+      "https://www.duckdns.org/update?domains={{ duckdns_domain }}&token={{ duckdns_token }}&ip={{ lb_ip }}"
       >/dev/null 2>&1
     minute: "*/5"

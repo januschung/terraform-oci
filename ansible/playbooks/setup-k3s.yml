@@ -6,6 +6,7 @@
     duckdns_domain: "{{ duckdns_domain }}"
     duckdns_token: "{{ duckdns_token }}"
     acme_email: "{{ acme_email }}"
+    lb_ip: "{{ ip_lb }}"
   roles:
     - common
     - k3s
