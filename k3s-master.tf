@@ -17,6 +17,7 @@ module "k3s_master" {
   shape            = "VM.Standard.A1.Flex"
   ocpus            = 2
   memory_gb        = 12
+  ocid_image_id    = "ocid1.image.oc1.phx.aaaaaaaa72cedjfaq5smtmwxpjwrhmcfpvcpqo2ppomzxlpfb72svn7vnapq"
   name_prefix      = "k3s-master"
   dns_label        = "k3smaster"
   ingress_security_rules = [
@@ -53,6 +54,15 @@ module "k3s_master" {
       tcp_options = {
         min = 10250
         max = 10250
+      }
+      description = "Kubelet API"
+    },
+    {
+      protocol = "6"
+      source   = var.internal_cidr
+      tcp_options = {
+        min = 30080
+        max = 30443
       }
       description = "Kubelet API"
     },
