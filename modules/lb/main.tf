@@ -19,12 +19,7 @@ resource "oci_load_balancer_backend_set" "http" {
 
   health_checker {
     protocol          = "HTTP"
-    url_path          = "/"
     port              = var.backend_http_port
-    return_code       = 200
-    retries           = 3
-    timeout_in_millis = 3000
-    interval_ms       = 10000
   }
 }
 
