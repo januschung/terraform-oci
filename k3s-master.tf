@@ -57,6 +57,15 @@ module "k3s_master" {
       description = "Kubelet API"
     },
     {
+      protocol = "6"
+      source   = var.internal_cidr
+      tcp_options = {
+        min = 30080
+        max = 30443
+      }
+      description = "Kubelet API"
+    },
+    {
       protocol = "17"
       source   = var.internal_cidr
       udp_options = {
