@@ -62,6 +62,7 @@
       source address="10.0.0.0/16"
       port port="30080-30443" protocol="tcp" accept
     permanent: true
+    state: enabled
     immediate: true
   when: k3s_enabled | default(false)
 
