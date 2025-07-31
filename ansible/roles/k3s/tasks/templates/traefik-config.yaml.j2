@@ -14,9 +14,9 @@ spec:
       - "--entryPoints.web.http.redirections.entryPoint.scheme=https"
     ports:
       web:
-        NodePort: 30080
+        nodePort: 30080
       websecure:
-        NodePort: 30443
+        nodePort: 30443
     service:
       type: NodePort
     persistence:
