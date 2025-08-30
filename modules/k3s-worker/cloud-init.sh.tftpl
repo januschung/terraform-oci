@@ -46,32 +46,9 @@ MASTER_IP="${master_private_ip}"
 # Wait a bit more for the master to fully initialize
 sleep 30
 
-# Try to get the token from the master's API (this is a simplified approach)
-# In production, you might want to use a more secure method
-TOKEN=""
-for attempt in {1..10}; do
-  echo "Attempting to get node token from master... attempt $attempt"
-  
-  # Try to get the token from the master's node-token file via SSH
-  # This assumes the worker can SSH to the master using the same key
-  if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 opc@$MASTER_IP "sudo cat /var/lib/rancher/k3s/server/node-token" > /tmp/node-token 2>/dev/null; then
-    TOKEN=$(cat /tmp/node-token)
-    echo "Successfully retrieved node token"
-    break
-  fi
-  
-  echo "Failed to get token, waiting 30 seconds before retry..."
-  sleep 30
-done
+TOKEN="${k3s_token}"
 
-if [ -z "$TOKEN" ]; then
-  echo "ERROR: Could not retrieve node token from master"
-  echo "You may need to manually copy the token from the master node"
-  echo "Run: sudo cat /var/lib/rancher/k3s/server/node-token on the master"
-  exit 1
-fi
-
-# Install K3s worker with the retrieved token
+# Install K3s worker
 curl -sfL https://get.k3s.io | sh -s - agent \
   --server https://$MASTER_IP:6443 \
   --token "$TOKEN" \
