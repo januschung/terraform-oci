@@ -19,7 +19,7 @@ resource "oci_core_instance" "worker" {
 
   metadata = {
     ssh_authorized_keys = var.ssh_public_key
-    user_data           = base64encode(templatefile("${path.module}/cloud-init.sh.tftpl", {
+    user_data = base64encode(templatefile("${path.module}/cloud-init.sh.tftpl", {
       master_private_ip = var.master_private_ip
     }))
   }
