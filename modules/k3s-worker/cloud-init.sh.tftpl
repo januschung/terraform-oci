@@ -1,6 +1,6 @@
 #!/bin/bash
 # cloud-init for K3s worker (Terraform templatefile)
-# Expects template vars:
+# Template vars expected:
 #   - ${master_private_ip}
 #   - ${k3s_token}
 
@@ -11,28 +11,24 @@ exec > >(tee -a "$LOG_FILE") 2>&1
 
 echo "==> K3s worker bootstrap started: $(date -Is)"
 
-# 0) Idempotency guard (if rerun)
+# Idempotency guard if this ever re-runs
 if systemctl is-active --quiet k3s-agent; then
   echo "k3s-agent already active; exiting."
   exit 0
 fi
 
-# 1) Basics
-echo "==> Installing base packages"
-# Minimal set; extend if you need more tooling
+# Basic tooling
 if command -v dnf >/dev/null 2>&1; then
   dnf -y install curl iproute iptables || true
 else
   yum -y install curl iproute iptables || true
 fi
 
-# 2) Disable swap (K8s requirement)
-echo "==> Disabling swap"
+# Disable swap (K8s requirement)
 swapoff -a || true
 sed -ri 's/^[^#].*\sswap\s.*/# &/' /etc/fstab || true
 
-# 3) Kernel modules + sysctls for Kubernetes networking
-echo "==> Enabling kernel modules and sysctls"
+# Kernel modules + sysctls for Kubernetes networking
 modprobe overlay || true
 modprobe br_netfilter || true
 tee /etc/modules-load.d/k8s.conf >/dev/null <<EOF
@@ -49,60 +45,19 @@ EOF
 
 sysctl --system || true
 
-# 4) (Optional) Host firewall – usually unnecessary on OCI; uncomment if you enforce firewalld
-# echo "==> Configuring firewalld (optional)"
-# dnf -y install firewalld && systemctl enable --now firewalld
-# firewall-cmd --permanent --add-port=8472/udp   # Flannel VXLAN
-# firewall-cmd --permanent --add-port=10250/tcp  # Kubelet (optional/monitoring)
-# firewall-cmd --reload
-
-# 5) Detect primary interface/IP for node-ip + flannel-iface
-echo "==> Detecting primary interface and IP"
+# Detect primary interface/IP at runtime (no Terraform vars needed)
 primary_iface="$(ip route show default 0.0.0.0/0 | awk '{print $5}' | head -n1)"
 if [[ -z "${primary_iface}" ]]; then
   primary_iface="$(ip -o -4 route show to default | awk '{print $5}' | head -n1)"
 fi
 primary_ip="$(ip -4 addr show dev "$primary_iface" | awk '/inet /{print $2}' | cut -d/ -f1 | head -n1)"
-
 echo "Primary iface: ${primary_iface} | Primary IP: ${primary_ip}"
 
-# 6) Fetch installer script with retry (handles transient DNS/metadata timing)
-echo "==> Downloading K3s installer"
+# Fetch installer with retry
 installer="/tmp/get-k3s.sh"
 for i in {1..20}; do
   if curl -fsSL https://get.k3s.io -o "${installer}"; then
     chmod +x "${installer}"
     break
   fi
-  echo "Download attempt $i failed; retrying in 3s..."
-  sleep 3
-done
-if [[ ! -s "${installer}" ]]; then
-  echo "ERROR: Unable to download K3s installer."
-  exit 1
-fi
-
-# 7) Install + join as agent
-TOKEN="${k3s_token}"
-
-echo "==> Installing k3s agent and joining server https://${master_private_ip}:6443"
-# Do NOT echo the token to logs.
-"${installer}" agent \
-  --server "https://${master_private_ip}:6443" \
-  --token "${TOKEN}" \
-  --node-ip "${primary_ip}" \
-  --flannel-iface "${primary_iface}"
-
-systemctl enable --now k3s-agent
-
-# 8) Basic health check loop (waits up to ~2 minutes)
-echo "==> Waiting for k3s-agent to report active..."
-for i in {1..24}; do
-  if systemctl is-active --quiet k3s-agent; then
-    echo "k3s-agent is active."
-    break
-  fi
-  sleep 5
-done
-
-echo "==> k3s worker bootstrap complete: $(date -Is)"
+  echo "Download attempt $i failed; retrying in 3s.
