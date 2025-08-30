@@ -61,7 +61,7 @@ module "k3s_master" {
         min = 30080
         max = 30443
       }
-      description = "Kubelet API"
+      description = "NodePort range"
     },
     {
       protocol = "17"

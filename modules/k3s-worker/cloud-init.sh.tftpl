@@ -1,108 +1,108 @@
 #!/bin/bash
-# Cloud-init script for K3s worker nodes
-# This script will automatically configure the worker to join the K3s cluster
+# cloud-init for K3s worker (Terraform templatefile)
+# Expects template vars:
+#   - ${master_private_ip}
+#   - ${k3s_token}
 
-set -e
+set -euo pipefail
 
-# Update system
-dnf update -y
+LOG_FILE="/var/log/k3s-worker-bootstrap.log"
+exec > >(tee -a "$LOG_FILE") 2>&1
 
-# Disable swap (required by Kubernetes)
-swapoff -a
-sed -i '/swap/d' /etc/fstab
+echo "==> K3s worker bootstrap started: $(date -Is)"
 
-# Load required kernel modules
-modprobe br_netfilter
-echo "br_netfilter" >> /etc/modules-load.d/k8s.conf
+# 0) Idempotency guard (if rerun)
+if systemctl is-active --quiet k3s-agent; then
+  echo "k3s-agent already active; exiting."
+  exit 0
+fi
 
-# Configure sysctl for Kubernetes networking
-cat > /etc/sysctl.d/k8s.conf <<EOF
+# 1) Basics
+echo "==> Installing base packages"
+# Minimal set; extend if you need more tooling
+if command -v dnf >/dev/null 2>&1; then
+  dnf -y install curl iproute iptables || true
+else
+  yum -y install curl iproute iptables || true
+fi
+
+# 2) Disable swap (K8s requirement)
+echo "==> Disabling swap"
+swapoff -a || true
+sed -ri 's/^[^#].*\sswap\s.*/# &/' /etc/fstab || true
+
+# 3) Kernel modules + sysctls for Kubernetes networking
+echo "==> Enabling kernel modules and sysctls"
+modprobe overlay || true
+modprobe br_netfilter || true
+tee /etc/modules-load.d/k8s.conf >/dev/null <<EOF
+overlay
+br_netfilter
+EOF
+
+tee /etc/sysctl.d/90-k3s.conf >/dev/null <<'EOF'
 net.bridge.bridge-nf-call-iptables = 1
 net.bridge.bridge-nf-call-ip6tables = 1
 net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
 EOF
 
-sysctl --system
+sysctl --system || true
 
-# Wait for master to be ready
-echo "Waiting for master node to be ready..."
-for i in {1..30}; do
-  if curl -k -s "https://${master_private_ip}:6443/readyz" > /dev/null 2>&1; then
-    echo "Master is ready, proceeding with worker setup"
+# 4) (Optional) Host firewall – usually unnecessary on OCI; uncomment if you enforce firewalld
+# echo "==> Configuring firewalld (optional)"
+# dnf -y install firewalld && systemctl enable --now firewalld
+# firewall-cmd --permanent --add-port=8472/udp   # Flannel VXLAN
+# firewall-cmd --permanent --add-port=10250/tcp  # Kubelet (optional/monitoring)
+# firewall-cmd --reload
+
+# 5) Detect primary interface/IP for node-ip + flannel-iface
+echo "==> Detecting primary interface and IP"
+primary_iface="$(ip route show default 0.0.0.0/0 | awk '{print $5}' | head -n1)"
+if [[ -z "${primary_iface}" ]]; then
+  primary_iface="$(ip -o -4 route show to default | awk '{print $5}' | head -n1)"
+fi
+primary_ip="$(ip -4 addr show dev "$primary_iface" | awk '/inet /{print $2}' | cut -d/ -f1 | head -n1)"
+
+echo "Primary iface: ${primary_iface} | Primary IP: ${primary_ip}"
+
+# 6) Fetch installer script with retry (handles transient DNS/metadata timing)
+echo "==> Downloading K3s installer"
+installer="/tmp/get-k3s.sh"
+for i in {1..20}; do
+  if curl -fsSL https://get.k3s.io -o "${installer}"; then
+    chmod +x "${installer}"
     break
   fi
-  echo "Waiting for master... attempt $i/30"
-  sleep 10
+  echo "Download attempt $i failed; retrying in 3s..."
+  sleep 3
 done
+if [[ ! -s "${installer}" ]]; then
+  echo "ERROR: Unable to download K3s installer."
+  exit 1
+fi
 
-# Install K3s worker
-echo "Installing K3s worker agent..."
-
-# Create a temporary script to handle the token
-cat > /tmp/install-worker.sh <<'EOF'
-#!/bin/bash
-MASTER_IP="${master_private_ip}"
-
-# Wait a bit more for the master to fully initialize
-sleep 30
-
+# 7) Install + join as agent
 TOKEN="${k3s_token}"
 
-# Install K3s worker
-curl -sfL https://get.k3s.io | sh -s - agent \
-  --server https://$MASTER_IP:6443 \
-  --token "$TOKEN" \
-  --kubelet-arg="node-ip=$(hostname -I | awk '{print $1}')" \
-  --flannel-iface=eth0
+echo "==> Installing k3s agent and joining server https://${master_private_ip}:6443"
+# Do NOT echo the token to logs.
+"${installer}" agent \
+  --server "https://${master_private_ip}:6443" \
+  --token "${TOKEN}" \
+  --node-ip "${primary_ip}" \
+  --flannel-iface "${primary_iface}"
 
-# Clean up
-rm -f /tmp/node-token
-EOF
+systemctl enable --now k3s-agent
 
-chmod +x /tmp/install-worker.sh
-
-# Run the installation script in the background
-nohup /tmp/install-worker.sh > /var/log/k3s-worker-install.log 2>&1 &
-
-# Wait for K3s service to be active
-echo "Waiting for K3s agent service to start..."
-for i in {1..60}; do
+# 8) Basic health check loop (waits up to ~2 minutes)
+echo "==> Waiting for k3s-agent to report active..."
+for i in {1..24}; do
   if systemctl is-active --quiet k3s-agent; then
-    echo "K3s agent is now running"
+    echo "k3s-agent is active."
     break
   fi
-  echo "Waiting for K3s agent... attempt $i/60"
-  sleep 10
+  sleep 5
 done
 
-# Ensure chrony time sync service is running
-dnf install -y chrony
-systemctl enable --now chronyd
-
-# Configure firewall for internal communication only
-# Using internal_cidr variable for firewall rules
-firewall-cmd --permanent --add-port=10250/tcp
-firewall-cmd --permanent --add-port=30080-30443/tcp
-firewall-cmd --permanent --add-port=8472/udp
-firewall-cmd --permanent --add-port=22/tcp
-firewall-cmd --reload
-
-# Create a simple health check script
-cat > /usr/local/bin/health-check.sh <<'EOF'
-#!/bin/bash
-if systemctl is-active --quiet k3s-agent; then
-    echo "K3s agent is running"
-    exit 0
-else
-    echo "K3s agent is not running"
-    exit 1
-fi
-EOF
-
-chmod +x /usr/local/bin/health-check.sh
-
-# Add health check to crontab
-echo "*/5 * * * * /usr/local/bin/health-check.sh" | crontab -
-
-# Log completion
-echo "K3s worker setup completed at $(date)" >> /var/log/k3s-worker-setup.log
+echo "==> k3s worker bootstrap complete: $(date -Is)"
