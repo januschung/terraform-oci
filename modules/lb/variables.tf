@@ -1,5 +1,6 @@
 variable "compartment_ocid" {
-  type = string
+  type      = string
+  sensitive = true
 }
 
 variable "subnet_id" {
