@@ -1,6 +1,6 @@
 #!/bin/bash
 # cloud-init for K3s worker (Terraform templatefile)
-# Template vars expected:
+# Expected template vars (Terraform):
 #   - ${master_private_ip}
 #   - ${k3s_token}
 
@@ -11,7 +11,7 @@ exec > >(tee -a "$LOG_FILE") 2>&1
 
 echo "==> K3s worker bootstrap started: $(date -Is)"
 
-# Idempotency guard if this ever re-runs
+# Idempotency guard
 if systemctl is-active --quiet k3s-agent; then
   echo "k3s-agent already active; exiting."
   exit 0
@@ -45,19 +45,50 @@ EOF
 
 sysctl --system || true
 
-# Detect primary interface/IP at runtime (no Terraform vars needed)
+# Detect primary interface/IP at runtime
 primary_iface="$(ip route show default 0.0.0.0/0 | awk '{print $5}' | head -n1)"
-if [[ -z "${primary_iface}" ]]; then
+if [[ -z "$primary_iface" ]]; then
   primary_iface="$(ip -o -4 route show to default | awk '{print $5}' | head -n1)"
 fi
 primary_ip="$(ip -4 addr show dev "$primary_iface" | awk '/inet /{print $2}' | cut -d/ -f1 | head -n1)"
-echo "Primary iface: ${primary_iface} | Primary IP: ${primary_ip}"
+echo "Primary iface: $primary_iface | Primary IP: $primary_ip"
 
 # Fetch installer with retry
 installer="/tmp/get-k3s.sh"
 for i in {1..20}; do
-  if curl -fsSL https://get.k3s.io -o "${installer}"; then
-    chmod +x "${installer}"
+  if curl -fsSL https://get.k3s.io -o "$installer"; then
+    chmod +x "$installer"
     break
   fi
-  echo "Download attempt $i failed; retrying in 3s.
+  echo "Download attempt $i failed; retrying in 3s..."
+  sleep 3
+done
+if [[ ! -s "$installer" ]]; then
+  echo "ERROR: Unable to download K3s installer."
+  exit 1
+fi
+
+# Pin K3s version (change deliberately when you upgrade)
+export INSTALL_K3S_VERSION="v1.30.4+k3s1"
+
+# Join using the token (do not echo it)
+TOKEN="${k3s_token}"
+echo "==> Installing k3s agent and joining server https://${master_private_ip}:6443"
+"$installer" agent \
+  --server "https://${master_private_ip}:6443" \
+  --token "$TOKEN" \
+  --node-ip "$primary_ip" \
+  --flannel-iface "$primary_iface"
+
+systemctl enable --now k3s-agent
+
+# Short health wait
+for i in {1..24}; do
+  if systemctl is-active --quiet k3s-agent; then
+    echo "k3s-agent is active."
+    break
+  fi
+  sleep 5
+done
+
+echo "==> K3s worker bootstrap complete: $(date -Is)"
