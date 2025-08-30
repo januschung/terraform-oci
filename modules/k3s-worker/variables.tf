@@ -1,6 +1,7 @@
 variable "compartment_ocid" {
   description = "OCI compartment OCID"
   type        = string
+  sensitive   = true
 }
 
 variable "availability_domain" {
@@ -64,4 +65,10 @@ variable "internal_cidr" {
   description = "Internal CIDR range for node communication"
   type        = string
   default     = "10.0.0.0/16"
+}
+
+variable "k3s_token" {
+  description = "K3s node token"
+  type        = string
+  sensitive   = true
 }
