@@ -91,14 +91,13 @@ resource "oci_core_security_list" "http_https" {
 }
 
 resource "oci_core_subnet" "subnet" {
-  compartment_id = var.compartment_ocid
-  vcn_id         = oci_core_virtual_network.vcn.id
-  cidr_block     = "10.0.1.0/24"
-  display_name   = "${var.name_prefix}-subnet"
-  security_list_ids = [oci_core_security_list.http_https.id,
-  oci_core_virtual_network.vcn.default_security_list_id, ]
-  route_table_id = oci_core_route_table.public_rt.id
-  dns_label      = lower("${var.dns_label}")
+  compartment_id    = var.compartment_ocid
+  vcn_id            = oci_core_virtual_network.vcn.id
+  cidr_block        = "10.0.1.0/24"
+  display_name      = "${var.name_prefix}-subnet"
+  security_list_ids = [oci_core_security_list.http_https.id]
+  route_table_id    = oci_core_route_table.public_rt.id
+  dns_label         = lower("${var.dns_label}")
 }
 
 data "oci_core_images" "oracle_linux" {
