@@ -40,6 +40,15 @@ module "k3s_master" {
       protocol = "6"
       source   = var.internal_cidr
       tcp_options = {
+        min = 22
+        max = 22
+      }
+      description = "SSH access from internal network"
+    },
+    {
+      protocol = "6"
+      source   = var.internal_cidr
+      tcp_options = {
         min = 10250
         max = 10250
       }
