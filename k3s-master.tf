@@ -1,15 +1,3 @@
-variable "compartment_ocid" {
-  description = "The OCID of the compartment where the instance will be created"
-  type        = string
-  sensitive   = true
-}
-
-variable "internal_cidr" {
-  description = "Allowed internal CIDR range for Kubernetes node-to-node communication"
-  type        = string
-  default     = "10.0.0.0/16"
-}
-
 module "k3s_master" {
   source           = "./modules/web-server"
   compartment_ocid = var.compartment_ocid
