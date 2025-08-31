@@ -62,7 +62,7 @@ jobs:
           env_vars: |
             TF_VAR_compartment_ocid=${{ secrets.OCI_COMPARTMENT_OCID }}
             TF_VAR_k3s_token=${{ secrets.K3S_TOKEN }}
-            TF_VAR_nat_target_private_ip_ocid=${{ secrets.NAT_TARGET_PRIVATE_IP_OCID }}
+            # TF_VAR_nat_target_private_ip_ocid=${{ secrets.NAT_TARGET_PRIVATE_IP_OCID }}
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request'

@@ -3,14 +3,28 @@ data "oci_core_subnet" "master_subnet" {
   subnet_id = module.k3s_master.subnet_id
 }
 
-# Workers route table (first apply with no route rules, in case we need to recreate k3s master)
-# resource "oci_core_route_table" "workers_rt" {
-#   compartment_id = var.compartment_ocid
-#   vcn_id         = data.oci_core_subnet.master_subnet.vcn_id
-#   display_name   = "k3s-workers-rt"
-# }
+# Step 1: base route table (no rules)
+resource "oci_core_nat_gateway" "workers_nat" {
+  compartment_id = var.compartment_ocid
+  vcn_id         = data.oci_core_subnet.master_subnet.vcn_id
+  display_name   = "k3s-workers-nat"
+}
 
-# Private workers subnet (no public IPs), reusing the master's security lists
+# Route table sending 0.0.0.0/0 through the NAT Gateway
+
+resource "oci_core_route_table" "workers_rt" {
+  compartment_id = var.compartment_ocid
+  vcn_id         = data.oci_core_subnet.master_subnet.vcn_id
+  display_name   = "k3s-workers-rt"
+
+  route_rules {
+    destination       = "0.0.0.0/0"
+    destination_type  = "CIDR_BLOCK"
+    network_entity_id = oci_core_nat_gateway.workers_nat.id
+  }
+}
+
+# Private workers subnet (no public IPs), reuse master's security lists
 resource "oci_core_subnet" "workers_subnet" {
   compartment_id             = var.compartment_ocid
   vcn_id                     = data.oci_core_subnet.master_subnet.vcn_id
@@ -22,40 +36,13 @@ resource "oci_core_subnet" "workers_subnet" {
   route_table_id             = oci_core_route_table.workers_rt.id
 }
 
-# Attach a secondary VNIC on the master into the workers subnet (NAT-facing)
-resource "oci_core_vnic_attachment" "master_nat_vnic" {
-  instance_id = module.k3s_master.instance_id
-  create_vnic_details {
-    subnet_id              = oci_core_subnet.workers_subnet.id
-    display_name           = "master-nat-vnic"
-    skip_source_dest_check = true # required for NAT/forwarding
-  }
-}
-
-# Get the Private IP object for the NAT VNIC
-data "oci_core_private_ips" "master_nat_vnic_ip" {
-  vnic_id = oci_core_vnic_attachment.master_nat_vnic.vnic_id
-}
-
-# Use this block for the second apply, in case we need to recreate k3s master
-resource "oci_core_route_table" "workers_rt" {
-  compartment_id = var.compartment_ocid
-  vcn_id         = data.oci_core_subnet.master_subnet.vcn_id
-  display_name   = "k3s-workers-rt"
-
-  # Default route -> master NAT VNIC's Private IP
-  route_rules {
-    destination       = "0.0.0.0/0"
-    destination_type  = "CIDR_BLOCK"
-    network_entity_id = var.nat_target_private_ip_ocid
-  }
-}
-
+# Helpful outputs
 output "workers_subnet_id" {
   value       = oci_core_subnet.workers_subnet.id
   description = "Private workers subnet ID"
 }
-output "master_nat_private_ip_addr" {
-  value       = data.oci_core_private_ips.master_nat_vnic_ip.private_ips[0].ip_address
-  description = "IP address of the master's NAT VNIC"
+
+output "workers_nat_gateway_id" {
+  value       = oci_core_nat_gateway.workers_nat.id
+  description = "NAT Gateway ID for workers subnet"
 }
