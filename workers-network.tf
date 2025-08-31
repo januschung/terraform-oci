@@ -55,10 +55,6 @@ output "workers_subnet_id" {
   value       = oci_core_subnet.workers_subnet.id
   description = "Private workers subnet ID"
 }
-output "master_nat_vnic_ip" {
-  value       = data.oci_core_private_ips.master_nat_vnic_ip.private_ips[0].ip_address
-  description = "Master's NAT VNIC private IP"
-}
 output "master_nat_private_ip_addr" {
   value       = data.oci_core_private_ips.master_nat_vnic_ip.private_ips[0].ip_address
   description = "IP address of the master's NAT VNIC"

@@ -62,15 +62,14 @@ jobs:
           env_vars: |
             TF_VAR_compartment_ocid=${{ secrets.OCI_COMPARTMENT_OCID }}
             TF_VAR_k3s_token=${{ secrets.K3S_TOKEN }}
+            TF_VAR_nat_target_private_ip_ocid=${{ secrets.NAT_TARGET_PRIVATE_IP_OCID }}
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
         run: |
-            TF_VAR_nat_target_private_ip_ocid="$(terraform output -raw master_nat_private_ip_ocid)"
             terraform plan -lock=false
 
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-            TF_VAR_nat_target_private_ip_ocid="$(terraform output -raw master_nat_private_ip_ocid)"
             terraform apply -auto-approve
