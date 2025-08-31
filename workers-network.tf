@@ -47,7 +47,7 @@ resource "oci_core_route_table" "workers_rt" {
   route_rules {
     destination       = "0.0.0.0/0"
     destination_type  = "CIDR_BLOCK"
-    network_entity_id = data.oci_core_private_ips.master_nat_vnic_ip.private_ips[0].id
+    network_entity_id = var.nat_target_private_ip_ocid
   }
 }
 
