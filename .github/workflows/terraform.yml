@@ -65,8 +65,12 @@ jobs:
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
-        run: terraform plan -lock=false
+        run: |
+            TF_VAR_nat_target_private_ip_ocid="$(terraform output -raw master_nat_private_ip_ocid)"
+            terraform plan -lock=false
 
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve
+        run: |
+            TF_VAR_nat_target_private_ip_ocid="$(terraform output -raw master_nat_private_ip_ocid)"
+            terraform apply -auto-approve
