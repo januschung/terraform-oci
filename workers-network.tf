@@ -3,12 +3,12 @@ data "oci_core_subnet" "master_subnet" {
   subnet_id = module.k3s_master.subnet_id
 }
 
-# Workers route table (we add the default route after the VNIC exists)
-resource "oci_core_route_table" "workers_rt" {
-  compartment_id = var.compartment_ocid
-  vcn_id         = data.oci_core_subnet.master_subnet.vcn_id
-  display_name   = "k3s-workers-rt"
-}
+# Workers route table (first apply with no route rules, in case we need to recreate k3s master)
+# resource "oci_core_route_table" "workers_rt" {
+#   compartment_id = var.compartment_ocid
+#   vcn_id         = data.oci_core_subnet.master_subnet.vcn_id
+#   display_name   = "k3s-workers-rt"
+# }
 
 # Private workers subnet (no public IPs), reusing the master's security lists
 resource "oci_core_subnet" "workers_subnet" {
@@ -37,7 +37,7 @@ data "oci_core_private_ips" "master_nat_vnic_ip" {
   vnic_id = oci_core_vnic_attachment.master_nat_vnic.vnic_id
 }
 
-# Add this block *after* the first apply, then apply again
+# Use this block for the second apply, in case we need to recreate k3s master
 resource "oci_core_route_table" "workers_rt" {
   compartment_id = var.compartment_ocid
   vcn_id         = data.oci_core_subnet.master_subnet.vcn_id
