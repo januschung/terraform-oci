@@ -38,18 +38,18 @@ data "oci_core_private_ips" "master_nat_vnic_ip" {
 }
 
 # Add this block *after* the first apply, then apply again
-# resource "oci_core_route_table" "workers_rt" {
-#   compartment_id = var.compartment_ocid
-#   vcn_id         = data.oci_core_subnet.master_subnet.vcn_id
-#   display_name   = "k3s-workers-rt"
+resource "oci_core_route_table" "workers_rt" {
+  compartment_id = var.compartment_ocid
+  vcn_id         = data.oci_core_subnet.master_subnet.vcn_id
+  display_name   = "k3s-workers-rt"
 
-#   # Default route -> master NAT VNIC's Private IP
-#   route_rules {
-#     destination       = "0.0.0.0/0"
-#     destination_type  = "CIDR_BLOCK"
-#     network_entity_id = data.oci_core_private_ips.master_nat_vnic_ip.private_ips[0].id
-#   }
-# }
+  # Default route -> master NAT VNIC's Private IP
+  route_rules {
+    destination       = "0.0.0.0/0"
+    destination_type  = "CIDR_BLOCK"
+    network_entity_id = data.oci_core_private_ips.master_nat_vnic_ip.private_ips[0].id
+  }
+}
 
 output "workers_subnet_id" {
   value       = oci_core_subnet.workers_subnet.id
