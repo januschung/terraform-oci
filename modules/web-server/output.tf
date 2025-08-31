@@ -17,3 +17,8 @@ output "source_image_id" {
   description = "value of the latest source image of the compute instance for future update"
   value       = data.oci_core_images.oracle_linux.images[0].id
 }
+
+output "instance_id" {
+  description = "The OCID of the compute instance"
+  value       = oci_core_instance.instance.id
+}
