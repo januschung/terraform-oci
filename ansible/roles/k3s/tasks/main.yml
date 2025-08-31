@@ -118,3 +118,82 @@
       "https://www.duckdns.org/update?domains={{ duckdns_domain }}&token={{ duckdns_token }}&ip={{ lb_ip }}"
       >/dev/null 2>&1
     minute: "*/5"
+
+# --- NAT for private workers (master as gateway) ---
+- name: Ensure IP forwarding is enabled (NAT)
+  copy:
+    dest: /etc/sysctl.d/99-nat.conf
+    content: "net.ipv4.ip_forward=1\n"
+    owner: root
+    group: root
+    mode: "0644"
+  tags: [nat]
+
+- name: Apply sysctl (NAT)
+  command: sysctl --system
+  changed_when: false
+  tags: [nat]
+
+- name: Install and start firewalld
+  package:
+    name: firewalld
+    state: present
+  tags: [nat]
+
+- name: Enable firewalld
+  service:
+    name: firewalld
+    enabled: true
+    state: started
+  tags: [nat]
+
+# Detect interfaces:
+# - OUT = default route interface (public-facing)
+# - IN  = the *other* non-loopback interface (the workers-subnet VNIC)
+- name: Detect OUT interface
+  set_fact:
+    nat_out_iface: "{{ ansible_facts.default_ipv4.interface }}"
+  tags: [nat]
+
+- name: Detect IN interface (workers-subnet VNIC)
+  set_fact:
+    nat_in_iface: >-
+      {{
+        (ansible_facts.interfaces
+         | reject('equalto','lo')
+         | reject('equalto', nat_out_iface)
+         | list | first)
+      }}
+  tags: [nat]
+
+- name: Assert NAT interfaces detected
+  assert:
+    that:
+      - nat_out_iface is defined
+      - nat_in_iface  is defined
+    fail_msg: "Could not detect NAT interfaces. Ensure the master has a secondary VNIC attached (workers subnet)."
+  tags: [nat]
+
+- name: Enable masquerade (SNAT)
+  command: firewall-cmd --permanent --add-masquerade
+  register: _masq
+  changed_when: "'success' in _masq.stdout"
+  failed_when: false
+  tags: [nat]
+
+- name: Add direct NAT/forward rules
+  loop:
+    - "--permanent --direct --add-rule ipv4 nat POSTROUTING 0 -o {{ nat_out_iface }} -j MASQUERADE"
+    - "--permanent --direct --add-rule ipv4 filter FORWARD 0 -i {{ nat_in_iface }} -o {{ nat_out_iface }} -m state --state RELATED,ESTABLISHED -j ACCEPT"
+    - "--permanent --direct --add-rule ipv4 filter FORWARD 1 -i {{ nat_in_iface }} -o {{ nat_out_iface }} -j ACCEPT"
+  command: "firewall-cmd {{ item }}"
+  register: _fw
+  changed_when: "'success' in _fw.stdout"
+  failed_when: false
+  tags: [nat]
+
+- name: Reload firewalld (apply NAT rules)
+  command: firewall-cmd --reload
+  changed_when: false
+  tags: [nat]
+# --- end NAT block ---
