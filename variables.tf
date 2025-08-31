@@ -27,3 +27,8 @@ variable "worker_dns_label" {
   type        = string
   default     = "k3swrk"
 }
+variable "nat_target_private_ip_ocid" {
+  description = "OCID of the master's NAT VNIC Private IP (from Step 1 output)"
+  type        = string
+  default     = "" # set via tfvars or env before Step 2 apply
+}
