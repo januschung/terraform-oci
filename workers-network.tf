@@ -4,11 +4,11 @@ data "oci_core_subnet" "master_subnet" {
 }
 
 # Workers route table (first apply with no route rules, in case we need to recreate k3s master)
-# resource "oci_core_route_table" "workers_rt" {
-#   compartment_id = var.compartment_ocid
-#   vcn_id         = data.oci_core_subnet.master_subnet.vcn_id
-#   display_name   = "k3s-workers-rt"
-# }
+resource "oci_core_route_table" "workers_rt" {
+  compartment_id = var.compartment_ocid
+  vcn_id         = data.oci_core_subnet.master_subnet.vcn_id
+  display_name   = "k3s-workers-rt"
+}
 
 # Private workers subnet (no public IPs), reusing the master's security lists
 resource "oci_core_subnet" "workers_subnet" {
@@ -38,18 +38,18 @@ data "oci_core_private_ips" "master_nat_vnic_ip" {
 }
 
 # Use this block for the second apply, in case we need to recreate k3s master
-resource "oci_core_route_table" "workers_rt" {
-  compartment_id = var.compartment_ocid
-  vcn_id         = data.oci_core_subnet.master_subnet.vcn_id
-  display_name   = "k3s-workers-rt"
+# resource "oci_core_route_table" "workers_rt" {
+#   compartment_id = var.compartment_ocid
+#   vcn_id         = data.oci_core_subnet.master_subnet.vcn_id
+#   display_name   = "k3s-workers-rt"
 
-  # Default route -> master NAT VNIC's Private IP
-  route_rules {
-    destination       = "0.0.0.0/0"
-    destination_type  = "CIDR_BLOCK"
-    network_entity_id = data.oci_core_private_ips.master_nat_vnic_ip.private_ips[0].id
-  }
-}
+#   # Default route -> master NAT VNIC's Private IP
+#   route_rules {
+#     destination       = "0.0.0.0/0"
+#     destination_type  = "CIDR_BLOCK"
+#     network_entity_id = data.oci_core_private_ips.master_nat_vnic_ip.private_ips[0].id
+#   }
+# }
 
 output "workers_subnet_id" {
   value       = oci_core_subnet.workers_subnet.id
@@ -58,4 +58,8 @@ output "workers_subnet_id" {
 output "master_nat_vnic_ip" {
   value       = data.oci_core_private_ips.master_nat_vnic_ip.private_ips[0].ip_address
   description = "Master's NAT VNIC private IP"
+}
+output "master_nat_private_ip_addr" {
+  value       = data.oci_core_private_ips.master_nat_vnic_ip.private_ips[0].ip_address
+  description = "IP address of the master's NAT VNIC"
 }
