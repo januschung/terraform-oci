@@ -37,14 +37,6 @@ data "oci_core_private_ips" "master_nat_vnic_ip" {
   vnic_id = oci_core_vnic_attachment.master_nat_vnic.vnic_id
 }
 
-# Default route for workers -> NAT instance (master's NAT VNIC Private IP)
-resource "oci_core_route_table_route_rule" "workers_default_to_nat_instance" {
-  route_table_id    = oci_core_route_table.workers_rt.id
-  destination       = "0.0.0.0/0"
-  destination_type  = "CIDR_BLOCK"
-  network_entity_id = data.oci_core_private_ips.master_nat_vnic_ip.private_ips[0].id
-}
-
 # Add this block *after* the first apply, then apply again
 # resource "oci_core_route_table" "workers_rt" {
 #   compartment_id = var.compartment_ocid
