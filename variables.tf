@@ -16,3 +16,14 @@ variable "k3s_token" {
   type        = string
   sensitive   = true
 }
+# set subnet and dns label for workers
+variable "worker_subnet_cidr" {
+  description = "CIDR for private workers subnet"
+  type        = string
+  default     = "10.0.2.0/24"
+}
+variable "worker_dns_label" {
+  description = "DNS label for workers subnet"
+  type        = string
+  default     = "k3swrk"
+}
