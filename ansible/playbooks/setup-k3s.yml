@@ -7,6 +7,7 @@
     duckdns_token: "{{ duckdns_token }}"
     acme_email: "{{ acme_email }}"
     lb_ip: "{{ ip_lb }}"
+    flannel_iface: "{{ flannel_iface }}"
   roles:
     - common
     - k3s

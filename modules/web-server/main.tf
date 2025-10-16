@@ -134,8 +134,9 @@ resource "oci_core_instance" "instance" {
   }
 
   create_vnic_details {
-    subnet_id        = oci_core_subnet.subnet.id
-    assign_public_ip = true
+    subnet_id              = oci_core_subnet.subnet.id
+    assign_public_ip       = true
+    skip_source_dest_check = true
   }
 
   preserve_boot_volume = false
