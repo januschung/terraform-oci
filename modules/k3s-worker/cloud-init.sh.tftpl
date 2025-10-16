@@ -3,6 +3,8 @@
 # Expected template vars (Terraform):
 #   - ${master_private_ip}
 #   - ${k3s_token}
+#   - ${cluster_pod_cidr}
+#   - ${cluster_service_cidr}
 
 set -euo pipefail
 
@@ -52,6 +54,16 @@ if [[ -z "$primary_iface" ]]; then
 fi
 primary_ip="$(ip -4 addr show dev "$primary_iface" | awk '/inet /{print $2}' | cut -d/ -f1 | head -n1)"
 echo "Primary iface: $primary_iface | Primary IP: $primary_ip"
+
+# Configure firewalld for K3s
+firewall-cmd --permanent --add-port=6443/tcp
+firewall-cmd --permanent --add-port=8472/udp
+firewall-cmd --permanent --add-port=10250/tcp
+firewall-cmd --permanent --add-port=30080/tcp
+firewall-cmd --permanent --add-port=30443/tcp
+firewall-cmd --permanent --zone=trusted --add-source=${cluster_pod_cidr}
+firewall-cmd --permanent --zone=trusted --add-source=${cluster_service_cidr}
+firewall-cmd --reload || true
 
 # Fetch installer with retry
 installer="/tmp/get-k3s.sh"

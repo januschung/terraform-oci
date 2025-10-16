@@ -27,3 +27,13 @@ variable "worker_dns_label" {
   type        = string
   default     = "k3swrk"
 }
+variable "cluster_pod_cidr" {
+  description = "K3s pod network CIDR (default 10.42.0.0/16)"
+  type        = string
+  default     = "10.42.0.0/16"
+}
+variable "cluster_service_cidr" {
+  description = "K3s service network CIDR (default 10.43.0.0/16)"
+  type        = string
+  default     = "10.43.0.0/16"
+}
