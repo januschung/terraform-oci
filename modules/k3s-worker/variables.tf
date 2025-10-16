@@ -72,3 +72,11 @@ variable "k3s_token" {
   type        = string
   sensitive   = true
 }
+
+variable "cluster_pod_cidr" {
+  type    = string
+}
+
+variable "cluster_service_cidr" {
+  type    = string
+}

@@ -1,12 +1,14 @@
 module "k3s_workers" {
-  source            = "./modules/k3s-worker"
-  compartment_ocid  = var.compartment_ocid
-  ssh_public_key    = file("~/.ssh/id_rsa.pub")
-  subnet_id         = oci_core_subnet.workers_subnet.id
-  master_private_ip = module.k3s_master.instance_private_ip
-  internal_cidr     = var.internal_cidr
-  worker_count      = 1
-  k3s_token         = var.k3s_token
+  source               = "./modules/k3s-worker"
+  compartment_ocid     = var.compartment_ocid
+  ssh_public_key       = file("~/.ssh/id_rsa.pub")
+  subnet_id            = oci_core_subnet.workers_subnet.id
+  master_private_ip    = module.k3s_master.instance_private_ip
+  internal_cidr        = var.internal_cidr
+  cluster_pod_cidr     = var.cluster_pod_cidr
+  cluster_service_cidr = var.cluster_service_cidr
+  worker_count         = 1
+  k3s_token            = var.k3s_token
 }
 
 # Outputs for worker nodes
