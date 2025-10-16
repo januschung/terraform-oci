@@ -74,9 +74,9 @@ variable "k3s_token" {
 }
 
 variable "cluster_pod_cidr" {
-  type    = string
+  type = string
 }
 
 variable "cluster_service_cidr" {
-  type    = string
+  type = string
 }
