@@ -34,7 +34,8 @@
 
 - name: Install K3s master
   shell: |
-    curl -sfL https://get.k3s.io | sh -s - server
+    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --flannel-iface {{ flannel_iface }}" sh -s -
+
   args:
     creates: /usr/local/bin/k3s
 
