@@ -70,7 +70,7 @@ terraform apply
 
 - [Set up Docker with Ansible](./docker.md)
 - [Set up K3s master node with Ansible](./k3s.md)
-- **NEW**: Deploy K3s worker nodes automatically with cloud-init
+- Deploy K3s worker nodes automatically with cloud-init
 
 ---
 
@@ -80,9 +80,9 @@ terraform apply
 - Automatically configure firewall and SSH access
 - Ansible workflow to install Docker and dependencies
 - Ansible workflow to install K3s and configure a Kubernetes master node
-- **NEW**: Automated K3s worker node deployment using cloud-init
-- **NEW**: Dedicated K3s worker module with no public IPs for security
-- **NEW**: Automatic cluster joining without manual intervention
+- Automated K3s worker node deployment using cloud-init
+- Dedicated K3s worker module
+- Automatic cluster joining without manual intervention
 - Cleanly organized roles for reusability
 
 ## K3s Cluster Setup
