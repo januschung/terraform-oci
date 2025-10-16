@@ -26,8 +26,9 @@ resource "oci_core_instance" "worker" {
   }
 
   create_vnic_details {
-    subnet_id        = var.subnet_id
-    assign_public_ip = false
+    subnet_id              = var.subnet_id
+    assign_public_ip       = false
+    skip_source_dest_check = true
   }
 
   preserve_boot_volume = false
