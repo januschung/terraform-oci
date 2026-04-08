@@ -3,10 +3,17 @@
     name: "*"
     state: latest
 
-- name: Install EPEL and required tools
+- name: Install EPEL on older Oracle Linux only
+  dnf:
+    name: epel-release
+    state: present
+  when:
+    - ansible_distribution == "OracleLinux"
+    - ansible_distribution_major_version | int < 10
+
+- name: Install required tools
   dnf:
     name:
-      - epel-release
       - firewalld
     state: present
 
