@@ -1,4 +1,4 @@
-# OCI Compute Provisioning with Terraform + Ansible Automation
+# OCI Compute Provisioning with Terraform + Ansible Automation 
 
 This project provisions Oracle Cloud Infrastructure (OCI) compute instances using Terraform, and configures them with Ansible. It provides a reproducible infrastructure-as-code setup for deploying and preparing lightweight OCI hosts, including K3s Kubernetes clusters.
 
