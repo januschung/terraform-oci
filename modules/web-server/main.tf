@@ -104,7 +104,7 @@ resource "oci_core_subnet" "subnet" {
 data "oci_core_images" "oracle_linux" {
   compartment_id           = var.compartment_ocid
   operating_system         = "Oracle Linux"
-  operating_system_version = var.oracle_version
+  operating_system_version = "10"
   sort_by                  = "TIMECREATED"
   sort_order               = "DESC"
 }

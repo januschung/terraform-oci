@@ -42,7 +42,7 @@ variable "name_prefix" {
 variable "ocid_image_id" {
   description = "OCID of the image to use for the compute instance"
   type        = string
-  default     = "ocid1.image.oc1.phx.aaaaaaaajiahmr7zzm22r2mcjoeux57pwk64skvcquwlp4vidbcip4e3ylpa"
+  default     = "ocid1.image.oc1.phx.aaaaaaaao5jppatgyzkycmkczigccgql4qkra2rp3bslon6dgonnxmwjcewa"
 }
 
 variable "worker_count" {
