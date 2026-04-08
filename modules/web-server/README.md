@@ -13,6 +13,7 @@ This Terraform module deploys a Docker-ready Oracle Linux server on OCI.
 | ocpus                  | Number of OCPUs if shape supports flexible config                | number | 1           | no       |
 | memory_gb              | Memory in GB if shape supports flexible config                   | number | 6           | no       |
 | name_prefix            | Prefix to add to resource names                                  | string | "my-app"    | no       |
+| oracle_version.        | Oracle Linux to use for the compute instance                     | string | 9           | no.      |
 | ocid_image_id          | OCID of the image to use for the compute instance                | string | "ocid1.image.oc1.phx.aaaaaaaaeqdefxlbovrp5uafn6gp5kxmesjdmkk7e7lhqcfgfy67zckwynlq" | no |
 | dns_label              | DNS label for the subnet                                         | string | "myappdns"  | no       |
 | ingress_security_rules | List of ingress security rules for the security list             | list(object) | []    | no       |

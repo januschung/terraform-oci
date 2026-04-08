@@ -5,6 +5,7 @@ module "k3s_master" {
   shape            = "VM.Standard.A1.Flex"
   ocpus            = 2
   memory_gb        = 12
+  oracle_version   = 10
   ocid_image_id    = "ocid1.image.oc1.phx.aaaaaaaajiahmr7zzm22r2mcjoeux57pwk64skvcquwlp4vidbcip4e3ylpa"
   name_prefix      = "k3s-master"
   dns_label        = "k3smaster"
