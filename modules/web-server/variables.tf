@@ -21,6 +21,12 @@ variable "shape" {
   default     = "VM.Standard.A1.Flex"
 }
 
+variable "oracle_version" {
+  description = "Version of Oracle Linux to use for the compute instance"
+  type        = string
+  default     = "9"
+}
+
 variable "ocpus" {
   description = "Number of OCPUs if shape supports flexible config"
   type        = number
