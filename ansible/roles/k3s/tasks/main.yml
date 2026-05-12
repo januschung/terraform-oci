@@ -57,8 +57,9 @@
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
 
 - name: Label master node for system workloads
-  ansible.builtin.command:
-    cmd: kubectl label node {{ ansible_hostname }} workload-tier=system --overwrite
+  shell: |
+    export PATH=/usr/local/bin:$PATH
+    kubectl label node {{ ansible_hostname }} workload-tier=system --overwrite
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
 
