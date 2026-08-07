@@ -7,7 +7,7 @@ module "k3s_workers" {
   internal_cidr        = var.internal_cidr
   cluster_pod_cidr     = var.cluster_pod_cidr
   cluster_service_cidr = var.cluster_service_cidr
-  worker_count         = 1
+  worker_count         = 2
   k3s_token            = var.k3s_token
 }
 
